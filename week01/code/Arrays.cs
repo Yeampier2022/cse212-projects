@@ -17,13 +17,12 @@ public static class Arrays
         for (var i = 1; i < length + 1; i++)
         {
 
-            var multi = number * i;
-            Console.WriteLine(multi);
-            result.Add(multi);
+            var multi = number * i; // get the parameter number and multiple with the indice of for
+            result.Add(multi); // Insert the number multiple in the list
 
         }
 
-        return result.ToArray(); // replace this return statement with your own
+        return result.ToArray(); // return the result 
     }
 
     /// <summary>
@@ -34,8 +33,8 @@ public static class Arrays
     /// Because a list is dynamic, this function will modify the existing data list rather than returning a new list.
     /// </summary>
     public static void RotateListRight(List<int> data, int amount)
-    {  
-         // TODO Problem 2 Start
+    {
+        // TODO Problem 2 Start
         // Remember: Using comments in your program, write down your process for solving this problem
         // step by step before you write the code. The plan should be clear enough that it could
         // be implemented by another person.
@@ -57,14 +56,14 @@ public static class Arrays
             return;
         }
 
-          for (int i = 0; i < effectiveAmount; i++)
+        for (int i = 0; i < effectiveAmount; i++)
         {
             int lastElement = data[n - 1]; // Get the last element
             data.RemoveAt(n - 1); // Remove the last element
             data.Insert(0, lastElement); // Insert it at the beginning
         }
 
-         return;
+        return;
 
     }
 }
