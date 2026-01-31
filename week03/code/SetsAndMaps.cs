@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json;
+using System.IO;
 
 public static class SetsAndMaps
 {
@@ -22,7 +26,28 @@ public static class SetsAndMaps
     public static string[] FindPairs(string[] words)
     {
         // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        var seenWords = new HashSet<string>();
+        var results = new List<string>();
+
+        foreach (string word in words)
+        {
+            // Create the symmetric mirror of the current word
+            // Since they are always 2 chars, we can just swap indices
+            string mirror = $"{word[1]}{word[0]}";
+
+            // If the mirror is in the set, we've found a pair
+            if (seenWords.Contains(mirror))
+            {
+                results.Add($"{mirror} & {word}");
+            }
+            else
+            {
+                // Otherwise, add the current word to the set to check against future words
+                seenWords.Add(word);
+            }
+        }
+
+        return results.ToArray();
     }
 
     /// <summary>
@@ -42,7 +67,24 @@ public static class SetsAndMaps
         foreach (var line in File.ReadLines(filename))
         {
             var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+
+            // Problem 2 - Solution
+            if (fields.Length >= 4)
+            {
+                // Extract the 4th column (index 3) and clean up whitespace
+                string degree = fields[3].Trim();
+
+                // If the degree is already in the dictionary, increment its count
+                if (degrees.ContainsKey(degree))
+                {
+                    degrees[degree]++;
+                }
+                // Otherwise, add the degree to the dictionary with an initial count of 1
+                else
+                {
+                    degrees[degree] = 1;
+                }
+            }
         }
 
         return degrees;
@@ -67,7 +109,45 @@ public static class SetsAndMaps
     public static bool IsAnagram(string word1, string word2)
     {
         // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        // 1. Normalize: Remove spaces and convert to lowercase
+        string s1 = word1.Replace(" ", "").ToLower();
+        string s2 = word2.Replace(" ", "").ToLower();
+
+        // 2. Quick check: If lengths differ, they can't be anagrams
+        if (s1.Length != s2.Length)
+        {
+            return false;
+        }
+
+        var charCounts = new Dictionary<char, int>();
+
+        // 3. Populate the dictionary with counts from the first word
+        foreach (char c in s1)
+        {
+            if (charCounts.ContainsKey(c))
+            {
+                charCounts[c]++;
+            }
+            else
+            {
+                charCounts[c] = 1;
+            }
+        }
+
+        // 4. Subtract counts using the second word
+        foreach (char c in s2)
+        {
+            // If the character isn't there or the count is already 0, it's not an anagram
+            if (!charCounts.ContainsKey(c) || charCounts[c] == 0)
+            {
+                return false;
+            }
+
+            charCounts[c]--;
+        }
+
+        // 5. If we successfully decremented everything to zero, they are anagrams
+        return true;
     }
 
     /// <summary>
@@ -87,20 +167,32 @@ public static class SetsAndMaps
     public static string[] EarthquakeDailySummary()
     {
         const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+
         using var client = new HttpClient();
         using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-        using var jsonStream = client.Send(getRequestMessage).Content.ReadAsStream();
+
+        using var response = client.Send(getRequestMessage);
+        using var jsonStream = response.Content.ReadAsStream();
         using var reader = new StreamReader(jsonStream);
         var json = reader.ReadToEnd();
+
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
 
-        // TODO Problem 5:
-        // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
-        // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
-        // 3. Return an array of these string descriptions.
-        return [];
+        var earthquakeDescriptions = new List<string>();
+
+        if (featureCollection?.Features != null)
+        {
+            foreach (var item in featureCollection.Features)
+            {
+                string place = item.Properties?.Place ?? "Unknown Location";
+                double? mag = item.Properties?.Mag;
+
+                earthquakeDescriptions.Add($"{place} - Mag {mag}");
+            }
+        }
+
+        return earthquakeDescriptions.ToArray();
     }
 }
